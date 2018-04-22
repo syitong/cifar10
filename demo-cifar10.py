@@ -17,8 +17,9 @@ def next_batch(num, data, labels):
 
     return np.asarray(data_shuffle), np.asarray(labels_shuffle)
 
-def batch_norm(x, depth, train_flag):
+def batch_norm(x, train_flag):
   # Batch norm for convolutional maps
+  depth = tf.shape(x)[-1]
   beta = tf.Variable(tf.constant(0.0, shape=[depth]), name='beta',trainable=True)
   gamma = tf.Variable(tf.constant(0.0, shape=[depth]), name='gamma',trainable=True)
   with tf.variable_scope('bn'):
@@ -118,8 +119,8 @@ with tf.Session() as sess:
   sess.run(tf.global_variables_initializer())
 
   # optimize 1000 Step
-  for i in range(1000):
-    batch = next_batch(128, x_train, y_train_one_hot.eval())
+  for i in range(20000):
+    batch = next_batch(50, x_train, y_train_one_hot.eval())
 
     # print accuracy and loss every 100 Step
     if i % 100 == 0:
