@@ -17,6 +17,16 @@ def next_batch(num, data, labels):
 
     return np.asarray(data_shuffle), np.asarray(labels_shuffle)
 
+def batch_norm(x, depth, train_flag):
+  # Batch norm for convolutional maps
+  beta = tf.Variable(tf.constant(0.0, shape=[depth]), name='beta',trainable=True)
+  gamma = tf.Variable(tf.constant(0.0, shape=[depth]), name='gamma',trainable=True)
+  with tf.variable_scope('bn'):
+    batch_mean, batch_var = tf.nn.moments(x, [0,1,2], name='moments')
+    # batch_mean, batch_var = tf.nn.moments(x, [0], name='moments')
+    normed = tf.nn.batch_normalization(x, batch_mean, batch_var, beta, gamma, 1e-3)
+    return normed
+
 # construc CNN model
 def build_CNN_classifier(x):
   """provide CNN graph to classify CIFAR-10 images
@@ -33,12 +43,7 @@ def build_CNN_classifier(x):
   # 1st convolutional layer - mapping from a grayscale image to 64 features
   W_conv1 = tf.Variable(tf.truncated_normal(shape=[5, 5, 3, 64], stddev=5e-2))
   b_conv1 = tf.Variable(tf.constant(0.1, shape=[64]))
-  l_conv1 = tf.nn.conv2d(x_image, W_conv1, strides=[1, 1, 1, 1], padding='SAME')
-  mean,variance = tf.nn.moments(l_conv1,axes=[0],keep_dims=True)
-  gamma1 = tf.Variable(tf.truncated_normal(shape=tf.shape(variance),stddev=5e-2))
-  beta1 = tf.Variable(tf.truncated_normal(shape=tf.shape(mean),stddev=5e-2))
-  n_conv1 = tf.nn.batch_normalization(l_conv1,mean,tf.sqrt(variance),beta1,gamma1,0.1)
-  h_conv1 = tf.nn.relu(n_conv1)
+  h_conv1 = tf.nn.relu(tf.nn.conv2d(x_image, W_conv1, strides=[1, 1, 1, 1], padding='SAME') + b_conv1)
 
   # 1st Pooling layer
   h_pool1 = tf.nn.max_pool(h_conv1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME')
@@ -113,7 +118,7 @@ with tf.Session() as sess:
   sess.run(tf.global_variables_initializer())
 
   # optimize 1000 Step
-  for i in range(10000):
+  for i in range(1000):
     batch = next_batch(128, x_train, y_train_one_hot.eval())
 
     # print accuracy and loss every 100 Step
