@@ -1,0 +1,22 @@
+#PBS -N gpu_test
+#PBS -M syitong@umich.edu
+#PBS -m abe
+
+#PBS -l nodes=1:gpus=1,mem=2gb
+#PBS -l walltime=00:50:00
+#PBS -l qos=flux
+#PBS -j oe
+#PBS -V
+
+#PBS -A tewaria_fluxg
+#PBS -q fluxg
+
+#  Show list of CPUs you ran on, if you're running under PBS
+if [ -n "$PBS_NODEFILE" ]; then cat $PBS_NODEFILE; fi
+
+#  Change to the directory you submitted from
+if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
+
+#  Put your job commands here:
+python demo-cifar10.py
+
